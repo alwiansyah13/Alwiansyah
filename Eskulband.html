@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eskulben</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            margin: 20px 0;
+        }
+        nav a {
+            background-color: #555;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 5px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        nav a:hover {
+            background-color: #777;
+        }
+        main {
+            padding: 20px;
+        }
+        h2 {
+            font-size: 22px;
+            margin-top: 20px;
+        }
+        img {
+            max-width: 200px;
+            display: block;
+            margin: 10px auto;
+        }
+        input[type="file"] {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>Eskulben</header>
+
+<nav>
+    <a href="#member">Member</a>
+    <a href="#band">Band</a>
+</nav>
+
+<main>
+    <section id="member">
+        <h2>Member</h2>
+        <p>Daftar anggota Eskulben akan muncul di sini.</p>
+
+        <!-- Fitur upload foto member -->
+        <input type="file" accept="image/*" onchange="previewImage(event)">
+        <img id="preview" src="" alt="Foto Member" style="display:none;">
+    </section>
+
+    <section id="band">
+        <h2>Band</h2>
+        <p>Informasi tentang band Eskulben akan muncul di sini.</p>
+    </section>
+
+    <section id="owner">
+        <img src="foto.jpg" alt="Foto Pemilik Web">
+        <p><strong>alwiansyah Ini pemilik webnya😘.</strong></p>
+    </section>
+</main>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
+</body>
+</html>
