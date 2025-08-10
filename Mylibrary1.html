@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Library - Catatan Interaktif</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0; background: #f4f4f4;
+  }
+  header {
+    background: #4a6fa5; color: #fff; padding: 15px; text-align: center;
+  }
+  main {
+    max-width: 700px; margin: 20px auto; background: white;
+    padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc;
+  }
+  .menu-card {
+    background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer; transition: background 0.3s;
+  }
+  .menu-card:hover {
+    background: #d2dafd;
+  }
+  .btn {
+    background: #4a6fa5; color: white; border: none; padding: 8px 16px;
+    border-radius: 5px; cursor: pointer; margin-top: 10px;
+  }
+  .btn:hover {
+    background: #395a85;
+  }
+  label {
+    font-weight: bold; display: block; margin-top: 15px;
+  }
+  input[type=text], select, textarea {
+    width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  textarea {
+    min-height: 100px; resize: vertical;
+  }
+  #notesList .note-item {
+    border-bottom: 1px solid #ddd; padding: 10px 0; cursor: pointer;
+  }
+  #notesList .note-item:hover {
+    background: #eef4ff;
+  }
+  .note-title {
+    font-weight: bold; color: #4a6fa5;
+  }
+  .note-meta {
+    font-size: 0.85rem; color: #666;
+  }
+  #noteDetail {
+    background: #eef2f7; padding: 15px; border-radius: 8px; margin-top: 15px;
+  }
+  #noteDetail h3 {
+    margin-top: 0;
+  }
+  #botMessage {
+    background: #dbe8ff; 
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-style: italic;
+    color: #155799;
+  }
+
+  /* MyBook styles */
+  #searchBook {
+    width: 100%; padding: 8px; margin-bottom: 15px;
+    border-radius: 5px; border: 1px solid #ccc;
+  }
+  .novel-card {
+    background: #fff; border: 1px solid #ccc; border-radius: 8px;
+    padding: 15px; margin-bottom: 10px;
+  }
+  .novel-title {
+    font-weight: bold; color: #4a6fa5; margin-bottom: 5px;
+  }
+  .novel-desc {
+    font-size: 0.9rem; color: #333; margin-bottom: 10px;
+  }
+  .read-link {
+    font-size: 0.85rem;
+    color: #155799;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Library</h1>
+  <p>Tempat catatan dan buku favorit kamu</p>
+</header>
+<main>
+  <!-- Home -->
+  <div id="home">
+    <div class="menu-card" id="openCatatan">📒 <h2>Catatan Pribadi</h2><p>Tulis dan simpan catatanmu sendiri.</p></div>
+    <div class="menu-card" id="openPublicNotes">🌍 <h2>Catatan Publik</h2><p>Lihat & upload catatan publik.</p></div>
+    <div class="menu-card" id="openMyBook">📚 <h2>My Book</h2><p>Koleksi novel favoritmu.</p></div>
+  </div>
+
+  <!-- Catatan Pribadi -->
+  <div id="catatan" style="display:none;">
+    <button class="btn" id="backFromCatatan">← Kembali</button>
+    <h2>Catatan Pribadi</h2>
+    <label for="manualNote">Tulis catatan:</label>
+    <textarea id="manualNote" placeholder="Tulis catatanmu di sini..."></textarea>
+    <button class="btn" id="saveManualNote">Simpan Catatan</button>
+
+    <hr>
+    <label for="fileInput">Upload file (gambar/pdf):</label>
+    <input type="file" id="fileInput" multiple />
+    <div id="uploadedFiles"></div>
+  </div>
+
+  <!-- Catatan Publik -->
+  <div id="publicNotes" style="display:none;">
+    <button class="btn" id="backFromPublicNotes">← Kembali</button>
+    <h2>Catatan Publik</h2>
+    <div>
+      <label for="noteTitle">Judul Catatan</label>
+      <input type="text" id="noteTitle" placeholder="Judul catatan" />
+      <label for="noteCategory">Kategori</label>
+      <select id="noteCategory">
+        <option value="Umum">Umum</option>
+        <option value="Sains">Sains</option>
+        <option value="Teknologi">Teknologi</option>
+        <option value="Motivasi">Motivasi</option>
+      </select>
+      <label for="noteContent">Isi Catatan</label>
+      <textarea id="noteContent" placeholder="Tulis isi catatan..."></textarea>
+      <button class="btn" id="uploadNoteBtn">Upload Catatan</button>
+    </div>
+
+    <div id="botMessage" style="display:none;"></div>
+
+    <hr>
+    <label for="searchInput">Cari catatan:</label>
+    <input type="text" id="searchInput" placeholder="Cari berdasarkan judul, isi, atau uploader" />
+    <label for="filterCategory">Filter Kategori:</label>
+    <select id="filterCategory">
+      <option value="all">Semua</option>
+      <option value="Umum">Umum</option>
+      <option value="Sains">Sains</option>
+      <option value="Teknologi">Teknologi</option>
+      <option value="Motivasi">Motivasi</option>
+    </select>
+
+    <div id="notesList"></div>
+
+    <div id="noteDetail" style="display:none;">
+      <button class="btn" id="closeNoteDetail">Tutup Detail</button>
+      <h3 id="detailTitle"></h3>
+      <p><b>Kategori:</b> <span id="detailCategory"></span></p>
+      <p><b>Diunggah oleh:</b> <span id="detailUploader"></span></p>
+      <p><b>Waktu Unggah:</b> <span id="detailTimestamp"></span></p>
+      <p id="detailContent"></p>
+    </div>
+  </div>
+
+  <!-- My Book -->
+  <div id="mybook" style="display:none;">
+    <button class="btn" id="backFromMyBook">← Kembali</button>
+    <h2>My Book</h2>
+    <label for="searchBook">Cari novel:</label>
+    <input type="text" id="searchBook" placeholder="Ketik judul atau kata kunci novel..." />
+    <div id="novelList"></div>
+  </div>
+</main>
+
+<script>
+  // Username
+  function askUsername() {
+    let user = localStorage.getItem('username');
+    while(!user) {
+      user = prompt("Masukkan nama pengguna kamu untuk upload catatan publik:");
+      if(user) {
+        user = user.trim();
+        if(user.length < 2) user = null;
+      }
+    }
+    localStorage.setItem('username', user);
+    return user;
+  }
+  const username = askUsername();
+
+  // Waktu "berapa lama yang lalu"
+  function timeAgo(time) {
+    const now = Date.now();
+    const diff = now - time;
+    const seconds = Math.floor(diff / 1000);
+    if(seconds < 60) return 'baru saja';
+    const minutes = Math.floor(seconds / 60);
+    if(minutes < 60) return minutes + ' menit yang lalu';
+    const hours = Math.floor(minutes / 60);
+    if(hours < 24) return hours + ' jam yang lalu';
+    const days = Math.floor(hours / 24);
+    return days + ' hari yang lalu';
+  }
+
+  // Pages show/hide
+  function showPage(pageId) {
+    ['home','catatan','publicNotes','mybook'].forEach(id => {
+      document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none';
+    });
+    if(pageId === 'publicNotes') {
+      updatePublicNotesList();
+      document.getElementById('noteDetail').style.display = 'none';
+      document.getElementById('notesList').style.display = 'block';
+      document.getElementById('botMessage').style.display = 'none';
+    }
+    if(pageId === 'mybook') renderNovels();
+  }
+
+  // Event klik menu home
+  document.getElementById('openCatatan').addEventListener('click', () => showPage('catatan'));
+  document.getElementById('openPublicNotes').addEventListener('click', () => showPage('publicNotes'));
+  document.getElementById('openMyBook').addEventListener('click', () => showPage('mybook'));
+
+  // Tombol kembali
+  document.getElementById('backFromCatatan').addEventListener('click', () => showPage('home'));
+  document.getElementById('backFromPublicNotes').addEventListener('click', () => showPage('home'));
+  document.getElementById('backFromMyBook').addEventListener('click', () => showPage('home'));
+  document.getElementById('closeNoteDetail').addEventListener('click', () => {
+    document.getElementById('noteDetail').style.display = 'none';
+    document.getElementById('notesList').style.display = 'block';
+  });
+
+  // Catatan pribadi simpan & load
+  const manualNoteTextarea = document.getElementById('manualNote');
+  document.getElementById('saveManualNote').addEventListener('click', () => {
+    const text = manualNoteTextarea.value.trim();
+    if(text.length === 0) return alert('Catatan kosong!');
+    localStorage.setItem('manualNote', text);
+    alert('Catatan pribadi disimpan!');
+  });
+  // Load catatan pribadi
+  const savedNote = localStorage.getItem('manualNote');
+  if(savedNote) manualNoteTextarea.value = savedNote;
+
+  // Preview file upload catatan pribadi
+  const fileInput = document.getElementById('fileInput');
+  const uploadedFilesDiv = document.getElementById('uploadedFiles');
+  fileInput.addEventListener('change', () => {
+    uploadedFilesDiv.innerHTML = '';
+    const files = fileInput.files;
+    for(let i=0; i<files.length; i++) {
+      const file = files[i];
+      if(file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.maxWidth = '100%';
+        img.style.marginBottom = '10px';
+        uploadedFilesDiv.appendChild(img);
+      } else if(file.type === 'application/pdf') {
+        const iframe = document.createElement('iframe');
+        iframe.src = URL.createObjectURL(file);
+        iframe.width = '100%';
+        iframe.height = '300px';
+        iframe.style.marginBottom = '10px';
+        uploadedFilesDiv.appendChild(iframe);
+      } else {
+        const p = document.createElement('p');
+        p.textContent = `File ${file.name} tidak bisa dipreview.`;
+        uploadedFilesDiv.appendChild(p);
+      }
+    }
+  });
+
+  // Catatan publik localStorage
+  function getPublicNotes() {
+    const notes = localStorage.getItem('publicNotes');
+    return notes ? JSON.parse(notes) : [];
+  }
+  function savePublicNotes(notes) {
+    localStorage.setItem('publicNotes', JSON.stringify(notes));
+  }
+
+  // Update list catatan publik filter dan search
+  function updatePublicNotesList() {
+    const notesList = document.getElementById('notesList');
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const filterCat = document.getElementById('filterCategory').value;
+    let notes = getPublicNotes();
+
+    if(filterCat !== 'all') {
+      notes = notes.filter(n => n.category === filterCat);
+    }
+    if(searchVal) {
+      notes = notes.filter(n =>
+        n.title.toLowerCase().includes(searchVal) ||
+        n.content.toLowerCase().includes(searchVal) ||
+        n.uploader.toLowerCase().includes(searchVal)
+      );
+    }
+    notesList.innerHTML = '';
+    if(notes.length === 0) {
+      notesList.innerHTML = '<p>Tidak ada catatan yang cocok.</p>';
+      return;
+    }
+    notes.forEach(note => {
+      const div = document.createElement('div');
+      div.className = 'note-item';
+      div.tabIndex = 0;
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'note-title';
+      titleDiv.textContent = note.title;
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'note-meta';
+      metaDiv.textContent = `Kategori: ${note.category} | Diunggah oleh: ${note.uploader} | ${timeAgo(note.timestamp)}`;
+      div.appendChild(titleDiv);
+      div.appendChild(metaDiv);
+      div.addEventListener('click', () => showNoteDetail(note));
+      div.addEventListener('keypress', e => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showNoteDetail(note);
+        }
+      });
+      notesList.appendChild(div);
+    });
+  }
+
+  // Tampil detail catatan publik
+  function showNoteDetail(note) {
+    document.getElementById('notesList').style.display = 'none';
+    const detail = document.getElementById('noteDetail');
+    detail.style.display = 'block';
+    document.getElementById('detailTitle').textContent = note.title;
+    document.getElementById('detailCategory').textContent = note.category;
+    document.getElementById('detailUploader').textContent = note.uploader;
+    document.getElementById('detailTimestamp').textContent = timeAgo(note.timestamp);
+    document.getElementById('detailContent').textContent = note.content;
+  }
+
+  // Bot response contoh random kalimat singkat
+  const botResponses = [
+    "Catatan ini sangat menarik, semoga bermanfaat!",
+    "Terus belajar dan berbagi ilmu, bro!",
+    "Jangan lupa istirahat juga ya, kerja keras tapi jangan over!",
+    "Mantap! Semangat terus untuk hari ini!",
+    "Ide bagus, jangan disimpan sendiri, bagikan ke banyak orang.",
+  ];
+
+  // Upload catatan publik dengan simulasi bot 10 detik
+  document.getElementById('uploadNoteBtn').addEventListener('click', () => {
+    const title = document.getElementById('noteTitle').value.trim();
+    const category = document.getElementById('noteCategory').value;
+    const content = document.getElementById('noteContent').value.trim();
+    const botMessageDiv = document.getElementById('botMessage');
+
+    if(title.length === 0 || content.length === 0) {
+      return alert('Judul dan isi catatan harus diisi!');
+    }
+    if(!confirm(`Upload catatan "${title}" ke publik?`)) return;
+
+    // Mulai bot proses
+    botMessageDiv.style.display = 'block';
+    botMessageDiv.textContent = 'Library Bot: Sedang memproses catatan... (harap tunggu 10 detik)';
+
+    // Disable tombol upload agar gak spam
+    const uploadBtn = document.getElementById('uploadNoteBtn');
+    uploadBtn.disabled = true;
+
+    setTimeout(() => {
+      // Simulasi selesai proses 10 detik
+      const notes = getPublicNotes();
+      notes.push({
+        id: Date.now(),
+        title,
+        category,
+        content,
+        uploader: username,
+        timestamp: Date.now()
+      });
+      savePublicNotes(notes);
+
+      // Reset form
+      document.getElementById('noteTitle').value = '';
+      document.getElementById('noteCategory').value = 'Umum';
+      document.getElementById('noteContent').value = '';
+
+      updatePublicNotesList();
+
+      // Bot kasih respon random
+      const randomReply = botResponses[Math.floor(Math.random() * botResponses.length)];
+      botMessageDiv.textContent = `Library Bot: ${randomReply}`;
+
+      uploadBtn.disabled = false;
+      alert('Catatan berhasil diupload!');
+    }, 10000);
+  });
+
+  // Event search & filter langsung update list
+  document.getElementById('searchInput').addEventListener('input', updatePublicNotesList);
+  document.getElementById('filterCategory').addEventListener('change', updatePublicNotesList);
+
+  // --- MyBook dummy data & fitur ---
+  const novels = [
+    {
+      title: "Kisah Cinta di Ujung Angin",
+      desc: "Sebuah kisah romantis di tepi pantai selatan Jogja.",
+      link: "https://drive.google.com/file/d/1EXAMPLEKisahCintaUjungAngin/view"
+    },
+    {
+      title: "Laskar Pelangi",
+      desc: "Perjuangan anak-anak Belitung untuk meraih pendidikan.",
+      link: "https://drive.google.com/file/d/1EXAMPLELaskarPelangi/view"
+    },
+    {
+      title: "Negeri 5 Menara",
+      desc: "Imam sang bocah dari Ponorogo yang bercita-cita menjadi kyai.",
+      link: "https://drive.google.com/file/d/1EXAMPLENegeri5Menara/view"
+    },
+    {
+      title: "Sang Pemimpi",
+      desc: "Perjalanan Arai, Jimbron, dan Ikal mengejar mimpi ke Eropa.",
+      link: "https://drive.google.com/file/d/1EXAMPLESangPemimpi/view"
+    },
+    {
+      title: "Bumi Manusia",
+      desc: "Kisah Minke di era kolonial Hindia Belanda.",
+      link: "https://drive.google.com/file/d/1EXAMPLEBumiManusia/view"
+    },
+    {
+      title: "Perahu Kertas",
+      desc: "Cinta yang tumbuh dari lembaran kertas dan perahu kertas.",
+      link: "https://drive.google.com/file/d/1EXAMPLEPerahuKertas/view"
+    }
+  ];
+
+  function renderNovels(filter = '') {
+    const list = document.getElementById('novelList');
+    list.innerHTML = '';
+    const filtered = novels.filter(n =>
+      n.title.toLowerCase().includes(filter.toLowerCase()) ||
+      n.desc.toLowerCase().includes(filter.toLowerCase())
+    );
+    filtered.forEach(n => {
+      const card = document.createElement('div');
+      card.className = 'novel-card';
+      card.innerHTML = `
+        <div class="novel-title">${n.title}</div>
+        <div class="novel-desc">${n.desc}</div>
+        <a class="read-link" href="${n.link}" target="_blank" rel="noopener">📖 Baca novel</a>
+      `;
+      list.appendChild(card);
+    });
+  }
+  document.getElementById('searchBook').addEventListener('input', e => renderNovels(e.target.value));
+
+  // --- Bot auto upload catatan publik setiap 5 detik dengan konten panjang ---
+  const botLongNotes = [
+    {
+      title: "Cara Mengelola Waktu dengan Bijak",
+      category: "Motivasi",
+      content: "Waktu adalah sumber daya paling adil yang dimiliki setiap manusia. Kita semua diberi 24 jam sehari, namun mengapa ada yang produktif luar biasa sementara yang lain merasa hari itu cepat berlalu tanpa hasil? Jawabannya terletak pada bagaimana kita mengelola waktu. Langkah pertama adalah menentukan prioritas. Buatlah daftar tugas penting dan mendesak, lalu kerjakan satu per satu tanpa multitasking berlebihan. Gunakan teknik Pomodoro: 25 menit fokus, 5 menit istirahat, ulangi empat kali lalu istirahat panjang 15 menit. Jangan lupa evaluasi setiap malam: apa yang sudah selesai, apa yang tertunda, dan apa pelajaran untuk esok hari. Dengan konsistensi, waktu akan menjadi sekutu, bukan musuh."
+    },
+    {
+      title: "Pentingnya Tidur yang Berkualitas",
+      category: "Umum",
+      content: "Tidur bukan sekadar istirahat, tetapi investasi kesehatan jangka panjang. Selama tidur, tubuh memperbaiki sel-sel rusak, otak menyusun memori, dan hormon tumbuh kembali diaktifkan. Kurang tidur bisa menurunkan daya tahan tubuh, konsentrasi, hingga memicu stres kronis. Untuk tidur yang berkualitas, matikan layar minimal satu jam sebelum tidur, buat kamar gelap dan sejuk, serta jangan mengonsumsi kafein enam jam menjelang tidur. Jika susah terlelap, coba teknik 4-7-8: tarik napas empat detik, tahan tujuh detik, hembuskan delapan detik. Ulangi hingga terlelap. Ingat, tidur berkualitas adalah pintu menuju produktivitas dan kesejahteraan hidup."
+    },
+    {
+      title: "Mengapa Kita Harus Terus Belajar Seumur Hidup?",
+      category: "Teknologi",
+      content: "Dalam era digital yang berubah lebih cepat dari sebelumnya, pengetahuan yang kita miliki bisa usang dalam hitungan bulan. Belajar seumur hidup bukan lagi pilihan, melainkan kebutuhan. Dengan belajar terus menerus, kita tetap relevan di tempat kerja, membuka peluang karier baru, dan menjaga otak tetap segar. Mulailah dengan langkah kecil: ikuti kursus daring gratis, baca satu artikel teknologi setiap hari, atau bergabung dengan komunitas belajar. Manfaatkan podcast saat berolahraga, ikuti webinar saat waktu luang, dan diskusikan ide baru dengan teman. Ingat, proses belajar tidak pernah berhenti; yang berhenti hanyalah kita jika memilih untuk tidak lagi tumbuh."
+    },
+    {
+      title: "Kekuatan dari Rasa Syukur",
+      category: "Motivasi",
+      content: "Rasa syukur adalah kunci kebahagiaan yang sering terlewat. Ketika kita fokus pada apa yang kurang, kita akan selalu merasa kekurangan. Namun, dengan berfokus pada apa yang sudah dimiliki, pikiran menjadi lebih tenang dan hati lebih lapang. Mulailah dengan menulis tiga hal yang membuatmu bersyukur setiap malam. Hal itu bisa sesederhana secangkir kopi hangat, senyuman orang asing, atau langit senja yang indah. Rasa syukur juga memperkuat hubungan sosial; berterima kasih kepada rekan kerja atau keluarga membuat ikatan lebih erat. Penelitian menunjukkan bahwa orang yang rajin menulis jurnal syukur memiliki tidur lebih nyenyak, tekanan darah lebih stabil, dan kekebalan tubuh lebih kuat. Jadi, bersyukurlah, karena itu adalah jalan termudah menuju ketenangan jiwa."
+    },
+    {
+      title: "Tips Hemat Kuota Internet untuk Pelajar",
+      category: "Teknologi",
+      content: "Kuota internet mahal, tapi belajar daring tidak bisa dihindari. Trik sederhana bisa menghemat puluhan persen penggunaan data. Gunakan mode hemat data di browser, aktifkan 'lite mode' di aplikasi YouTube, dan unduh materi saat di Wi-Fi gratis untuk dipelajari offline. Manfaatkan aplikasi pengunduh PDF agar tidak streaming berulang. Matikan pembaruan aplikasi otomatis dan batasi sinkronisasi awan. Saat Zoom atau Google Meet, matikan kamera kecuali benar-benar dibutuhkan. Dengan langkah-langkah ini, satu gigabyte bisa lebih hemat dan pembelajaran tetap lancar tanpa khawatir kuota habis."
+    }
+  ];
+
+  setInterval(() => {
+    const notes = getPublicNotes();
+    const randomNote = botLongNotes[Math.floor(Math.random() * botLongNotes.length)];
+
+    notes.push({
+      id: Date.now(),
+      title: `Bot: ${randomNote.title}`,
+      category: randomNote.category,
+      content: randomNote.content,
+      uploader: 'Library Bot',
+      timestamp: Date.now()
+    });
+    savePublicNotes(notes);
+    updatePublicNotesList();
+  }, 5000); // 5 detik
+
+  // Load halaman home pertama kali
+  showPage('home');
+</script>
+</body>
+</html>
